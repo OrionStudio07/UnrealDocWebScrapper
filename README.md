@@ -4,6 +4,8 @@
 
 **A production-grade asynchronous web crawler that converts Unreal Engine documentation into a structured, inter-linked Obsidian knowledge vault.**
 
+[![Status: In Development](https://img.shields.io/badge/Status-In_Development-orange?style=for-the-badge)](https://github.com/OrionStudio07/UnrealDocWebScrapper)
+
 [![CI Pipeline](https://github.com/OrionStudio07/UnrealDocWebScrapper/actions/workflows/ci.yml/badge.svg?branch=ScrDev20x3)](https://github.com/OrionStudio07/UnrealDocWebScrapper/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org)
 [![Playwright](https://img.shields.io/badge/Playwright-Chromium-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev)
@@ -20,9 +22,12 @@
 
 <img src="samples/media/obsidian_graph_full.png" alt="Full-Scale Obsidian Knowledge Graph" width="85%"/>
 
-<sup><em>Full-scale view — thousands of interconnected documentation nodes forming the complete UE5 knowledge graph.</em></sup>
+<sup><em>Full-scale view — thousands of interconnected documentation nodes forming the in-progress UE5 knowledge graph. Scraping is ongoing.</em></sup>
 
 </div>
+
+> [!WARNING]
+> **🚧 Active Development** — This project is under active development. The knowledge graph is not yet complete as the full scrape of Unreal Engine documentation is still in progress. Core crawler architecture, wiki-linking, and vault generation are functional, but the output vault is being incrementally expanded with each crawl session.
 
 ---
 
@@ -39,6 +44,7 @@
 - [Optimizations](#-optimizations--technical-insights)
 - [Crawler Demo](#-crawler-demo)
 - [Testing](#-testing)
+- [Roadmap](#-roadmap)
 - [Contributing](#-contributing)
 - [License](#-license)
 
@@ -270,6 +276,21 @@ pytest --cov=src tests/ --cov-report=term-missing
 | [`test_frontmatter.py`](tests/test_frontmatter.py) | Metadata parsing, tag inference, backlink injection |
 
 > ✅ **15 tests** passing in **< 0.3s** — all pure unit tests with zero I/O or network calls.
+
+---
+
+## 🗺️ Roadmap
+
+| Phase | Status | Description |
+|:------|:-------|:------------|
+| **Core Crawler Engine** | ✅ Complete | Async queue manager, Playwright extraction, state resume |
+| **Wiki-Link Transformer** | ✅ Complete | URL → `[[wiki-link]]` conversion with backlinks engine |
+| **YAML Metadata & Tags** | ✅ Complete | Auto-generated frontmatter with regex-inferred tags |
+| **Smart Categorization** | ✅ Complete | Content-aware directory routing for vault structure |
+| **Full Documentation Scrape** | 🔄 In Progress | Incrementally crawling the complete UE5 documentation set |
+| **Knowledge Graph Completion** | 🔄 In Progress | Expanding node coverage and inter-link density |
+| **Orion Collab Integration** | 🔜 Planned | Live agent traversal and constraint verification workflows |
+| **MkDocs Site Deployment** | 🔜 Planned | GitHub Pages documentation site via Material for MkDocs |
 
 ---
 
