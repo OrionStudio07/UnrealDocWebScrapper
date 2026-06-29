@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### In Progress
 - Full scrape of Unreal Engine 5 documentation (knowledge graph is being incrementally expanded with each crawl session).
-- Orion Collab agent integration for live vault traversal and constraint verification.
 - MkDocs documentation site deployment via GitHub Pages.
+
+### Completed
+- Orion Collab agent integration for live vault traversal and constraint verification.
 
 ## [1.0.0] - 2026-06-29
 
