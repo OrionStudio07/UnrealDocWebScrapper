@@ -1,6 +1,9 @@
-# Unreal Engine Documentation Obsidian Vault Scraper
+# UnrealDocWebScrapper
 
 A production-grade, highly optimized asynchronous web crawler and knowledge-base generator designed to parse Epic Games' Unreal Engine documentation and convert it into a structured, clean, and inter-linked Obsidian Vault.
+
+![Obsidian Graph View](samples/media/obsidian_graph.png)
+*Visual representation of the generated Obsidian semantic knowledge graph.*
 
 ## Key Features
 
@@ -116,3 +119,10 @@ Unreal documentation urls redirect dynamically (e.g. `en-us/` segments are strip
 
 ### Clean Obsidian Links
 Piped anchor text containing multiple lines or indentations are flattened into a single space, generating clean and compatible Obsidian links.
+
+---
+
+## Crawler Demo
+See the asynchronous sitemap discovery, Playwright crawling engine, and Obsidian vault graph integration in action:
+
+![Crawler Execution Demo](samples/media/scraper_demo.mp4)
