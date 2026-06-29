@@ -1,0 +1,76 @@
+[project]
+name = "UnrealDocWebScrapper"
+version = "1.0.0"
+description = "A production-grade, highly optimized asynchronous web crawler and knowledge-base generator designed to parse Epic Games' Unreal Engine documentation and convert it into a structured, clean, and inter-linked Obsidian Vault."
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Orion Collab Contributor"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Documentation",
+    "Topic :: Text Processing :: Markup :: Markdown"
+]
+dependencies = [
+    "playwright>=1.40.0",
+    "trafilatura>=1.6.0",
+    "markdownify>=0.11.6",
+    "beautifulsoup4>=4.12.0",
+    "aiofiles>=23.2.1",
+    "lxml>=4.9.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+python_files = "test_*.py"
+pythonpath = ["."]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning"
+]
+
+[tool.ruff]
+# Target version
+target-version = "py311"
+
+# Line length limit
+line-length = 120
+
+[tool.ruff.lint]
+# Select rules
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "C90", # mccabe complexity
+    "N",   # pep8-naming
+    "B"    # flake8-bugbear
+]
+
+# Ignore specific rules if needed
+ignore = [
+    "E501", # Line too long
+    "C901"  # Complex function (mccabe)
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

@@ -1,0 +1,26 @@
+[
+  {
+    "timestamp": "2026-06-29T19:00:00Z",
+    "event": "CRAWL_STARTED",
+    "details": "Initializing UnrealDocWebScrapper crawler"
+  },
+  {
+    "timestamp": "2026-06-29T19:00:03Z",
+    "event": "SITEMAP_PARSED",
+    "details": "Successfully indexed 1204 page URLs from XML sitemaps"
+  },
+  {
+    "timestamp": "2026-06-29T19:00:05Z",
+    "event": "PAGE_SCAPED",
+    "url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/actors-in-unreal-engine",
+    "category": "GameplayFramework",
+    "file": "UE5_Obsidian_Vault/GameplayFramework/Actors In Unreal Engine.md"
+  },
+  {
+    "timestamp": "2026-06-29T19:00:08Z",
+    "event": "PAGE_SCAPED",
+    "url": "https://dev.epicgames.com/documentation/en-us/unreal-engine/actor-network-dormancy-in-unreal-engine",
+    "category": "GameplayFramework",
+    "file": "UE5_Obsidian_Vault/GameplayFramework/Actor Network Dormancy In Unreal Engine.md"
+  }
+]
