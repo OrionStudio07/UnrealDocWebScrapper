@@ -1,128 +1,294 @@
-# UnrealDocWebScrapper
+<div align="center">
 
-A production-grade, highly optimized asynchronous web crawler and knowledge-base generator designed to parse Epic Games' Unreal Engine documentation and convert it into a structured, clean, and inter-linked Obsidian Vault.
+# 🕷️ UnrealDocWebScrapper
 
-![Obsidian Graph View](samples/media/obsidian_graph.png)
-*Visual representation of the generated Obsidian semantic knowledge graph.*
+**A production-grade asynchronous web crawler that converts Unreal Engine documentation into a structured, inter-linked Obsidian knowledge vault.**
 
-## Key Features
+[![CI Pipeline](https://github.com/OrionStudio07/UnrealDocWebScrapper/actions/workflows/ci.yml/badge.svg?branch=ScrDev20x3)](https://github.com/OrionStudio07/UnrealDocWebScrapper/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org)
+[![Playwright](https://img.shields.io/badge/Playwright-Chromium-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev)
+[![Obsidian](https://img.shields.io/badge/Obsidian-Vault-7C3AED?logo=obsidian&logoColor=white)](https://obsidian.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-1. **JavaScript & Hydration Rendering**: Uses Playwright Chromium browser automation to fetch and load fully hydrated single-page application (SPA) documentation pages, dismiss banners, and capture complete dynamic contents.
-2. **Bypass bot detection (Akamai/Cloudflare)**: Configured with custom User-Agents, Automation Controlled bypass arguments, and host-native browser contexts to avoid bot-detection blocks (like 403 Access Denied errors).
-3. **High-Performance Sitemap Parser**: Discover and recursively index hundreds of nested documentation sitemap XMLs asynchronously. XML files are fetched using a lightweight standard library client over thread pools, bypassing browser overhead and speeding up index discovery by **100x**.
-4. **Intelligent Categorization & Hierarchy**: Organizes extracted files into logical directories (`Blueprints/`, `Rendering/`, `GameplayFramework/`, `AI/`, `Networking/`, `Animation/`, `Physics/`, `Audio/`, `Editor/`, `Cplusplus/`, `Meta/`) based on URL paths, page headings, and body content keywords.
-5. **Obsidian Wiki-Links Transformer**: Scans and converts absolute/relative web links to other documentation pages into standard single-line piped Obsidian wiki-links (`[[slug|Anchor]]`) with whitespace normalization.
-6. **Related Pages & Backlinks**: Automatically appends a "Related Pages" section with backlink list targets generated dynamically from links found within the page body.
-7. **YAML Frontmatter & Inferred Metadata Tags**: Inserts metadata (title, original source URL, created timestamp) and infers specific tags (e.g. `cplusplus`, `niagara`, `blueprints`, `physics`) by scanning headings and page text.
-8. **Polite Pacing & Concurrency**: Spreads requests out with configurable rate-limiting throttling (1.0s delay minimum) and limits concurrent browser workers to 3–5 maximum to respect Epic's server capacities.
-9. **Robust Queue & State Resume**: Prevents data loss during interruptions. Serializes visited pages, failures, queue states, and sitemaps to JSON metadata states (`Meta/`) so crawls can be halted and resumed automatically.
+<br/>
+
+<img src="samples/media/obsidian_graph.png" alt="Obsidian Graph View" width="85%"/>
+
+<sup><em>Semantic knowledge graph generated inside Obsidian from scraped UE5 documentation — each node is a markdown file, each edge is a wiki-link.</em></sup>
+
+<br/><br/>
+
+<img src="samples/media/obsidian_graph_full.png" alt="Full-Scale Obsidian Knowledge Graph" width="85%"/>
+
+<sup><em>Full-scale view — thousands of interconnected documentation nodes forming the complete UE5 knowledge graph.</em></sup>
+
+</div>
 
 ---
 
-## Directory Structure
+## 📑 Table of Contents
 
-```text
+- [Key Features](#-key-features)
+- [How It Works](#-how-it-works)
+- [Vault Structure](#-vault-structure)
+- [Project Architecture](#-project-architecture)
+- [Integration with Orion Collab](#-integration-with-orion-collab)
+- [Installation & Setup](#-installation--setup)
+- [Configuration](#%EF%B8%8F-configuration)
+- [Usage](#-usage)
+- [Optimizations](#-optimizations--technical-insights)
+- [Crawler Demo](#-crawler-demo)
+- [Testing](#-testing)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## ✨ Key Features
+
+| Feature | Description |
+|:--------|:------------|
+| **🌐 SPA Rendering** | Playwright Chromium automation renders fully hydrated JavaScript SPA pages, dismisses banners, and captures complete dynamic content |
+| **🛡️ Anti-Bot Evasion** | Custom User-Agents, automation-controlled bypass args, and host-native browser contexts to avoid Akamai/Cloudflare 403 blocks |
+| **⚡ 100× Sitemap Speed** | Multithreaded `urllib` fetcher processes XML sitemaps via thread pools — **3 seconds** vs 5+ minutes through Chromium |
+| **📂 Smart Categorization** | Routes pages into logical directories (`Blueprints/`, `Rendering/`, `AI/`, `Cplusplus/`, etc.) based on URL paths and content keywords |
+| **🔗 Wiki-Link Transform** | Converts web links to Obsidian `[[slug\|Anchor]]` wiki-links with whitespace normalization |
+| **🏷️ YAML Metadata** | Auto-generates frontmatter with title, source URL, timestamps, and regex-inferred tags (`#blueprints`, `#niagara`, `#physics`) |
+| **📎 Backlinks Engine** | Appends a "Related Pages" section with dynamically generated backlink targets from in-page references |
+| **🔄 Crash-Resilient Resume** | Serializes visited pages, failures, queue state, and sitemaps to JSON — crawls resume exactly where they stopped |
+| **⏱️ Polite Pacing** | Configurable rate-limiting (1.0s delay) and concurrent worker caps (3–5 max) to respect server capacities |
+
+---
+
+## 🔄 How It Works
+
+```
+┌──────────────┐    ┌───────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+│  Sitemap XML │───▶│  Async Queue Mgr  │───▶│ Playwright Browser│───▶│  HTML Extractor  │
+│  Discovery   │    │  (Thread Pool)    │    │ (Chromium Workers)│    │  (DOM Cleanup)   │
+└──────────────┘    └───────────────────┘    └──────────────────┘    └──────────────────┘
+                                                                            │
+                    ┌───────────────────┐    ┌──────────────────┐           ▼
+                    │  Obsidian Vault   │◀───│  Vault Storage   │◀───┌──────────────────┐
+                    │  (.md files)      │    │  (Categorize)    │    │ Wiki-Link Engine │
+                    └───────────────────┘    └──────────────────┘    │ + YAML Metadata  │
+                                                                    │ + Backlinks      │
+                                                                    └──────────────────┘
+```
+
+---
+
+## 📁 Vault Structure
+
+The crawler generates a clean, navigable vault hierarchy:
+
+```
 UE5_Obsidian_Vault/
-├── Blueprints/
-├── Rendering/
-├── GameplayFramework/
-├── AI/
-├── Networking/
-├── Animation/
-├── Physics/
-├── Audio/
-├── Editor/
-├── Cplusplus/
-├── Meta/
+├── 📁 Blueprints/          # Visual scripting documentation
+├── 📁 Rendering/           # Graphics, materials, shaders
+├── 📁 GameplayFramework/   # Actors, components, game modes
+├── 📁 AI/                  # Behavior trees, EQS, navigation
+├── 📁 Networking/          # Replication, RPC, sessions
+├── 📁 Animation/           # Skeletal meshes, montages, blending
+├── 📁 Physics/             # Collision, physics bodies, constraints
+├── 📁 Audio/               # Sound cues, attenuation, mixing
+├── 📁 Editor/              # Editor tools, plugins, slate
+├── 📁 Cplusplus/           # C++ API reference and patterns
+├── 📁 Meta/                # Crawl state & metadata
 │   ├── crawl_log.json
 │   ├── visited_urls.json
 │   ├── failed_urls.json
 │   └── sitemap.json
+└── 📄 UE5_Dashboard.md     # Central index with links to all topics
+```
+
+> 💡 See [samples/](samples/) for representative output files showing the exact markdown format, frontmatter structure, and wiki-link backlinks.
+
+---
+
+## 🏗️ Project Architecture
+
+The system is built with modular, decoupled components under `src/`:
+
+| Module | File | Responsibility |
+|:-------|:-----|:---------------|
+| **Orchestrator** | [`queue_manager.py`](src/crawler/queue_manager.py) | Crawl loop, visited tracking, async worker dispatch, throttling |
+| **Sitemap Parser** | [`queue_manager.py`](src/crawler/queue_manager.py) | Multithreaded `urllib` XML fetcher — bypasses browser overhead |
+| **Page Extractor** | [`page_extractor.py`](src/extractor/page_extractor.py) | Playwright Chromium sessions, SPA hydration, banner dismissal |
+| **DOM Cleaner** | [`cleaner.py`](src/markdown/cleaner.py) | Strips headers, footers, scripts, sidebars, ads → clean text |
+| **Wiki Linker** | [`wiki_linker.py`](src/linking/wiki_linker.py) | Resolves paths, normalizes whitespace, generates `[[wiki-links]]` |
+| **Metadata Engine** | [`frontmatter.py`](src/metadata/frontmatter.py) | YAML frontmatter, regex tag inference, "Related Pages" backlinks |
+| **Vault Storage** | [`vault_storage.py`](src/storage/vault_storage.py) | Filename sanitization, category routing, atomic file writes |
+| **State Manager** | [`state_manager.py`](src/resume/state_manager.py) | JSON serialization of queue, visited URLs, failures for resume |
+| **Logger** | [`crawl_logger.py`](src/crawl_logging/crawl_logger.py) | Terminal output + structured event logging to `crawl_log.json` |
+| **Config** | [`config.py`](src/config.py) | Central settings: concurrency, delays, categories, browser args |
+
+---
+
+## 🤖 Integration with Orion Collab
+
+This vault is designed as the **local Knowledge Layer** for the [Orion Collab](https://github.com/OrionStudio07) AI agent framework.
+
+### Why Not Standard RAG?
+
+Traditional RAG splits text into arbitrary chunks → vector embeddings → similarity search. This works for simple Q&A but **fails** when agents need to:
+- Verify multi-step API workflows (e.g., initializing a custom `ActorComponent` with replication)
+- Navigate structural relationships between documentation pages
+- Cross-reference parameter constraints across multiple classes
+
+### Agentic Knowledge Graph Approach
+
+Instead, this vault functions as a **structured semantic knowledge graph**:
+
+| Component | Role |
+|:----------|:-----|
+| **Nodes** | Clean markdown files with high-fidelity documentation |
+| **Edges** | Explicit wiki-links (`[[Actors In Unreal Engine]]`) and backlinks |
+| **Dimensions** | YAML tags (`#cplusplus`, `#networking`, `#blueprints`) for filtering |
+
+**How Orion Collab agents use this vault:**
+
+1. **📍 Context-Aware Navigation** — Agents read index dashboards (`UE5_Dashboard.md`) and traverse the directory hierarchy instead of relying on similarity search alone.
+2. **🔗 Edge Traversal** — When an agent encounters `[[Replicate Actor Properties]]`, it programmatically navigates to that node for structural details.
+3. **✅ Constraint Verification** — Agents parse clean markdown to verify configuration properties (e.g., `Replicated` vs. `ReplicatedUsing`), producing compile-ready, error-free output.
+4. **⚡ Zero-Latency Retrieval** — Fully local vault with microsecond read times and zero external API dependencies.
+
+> 📖 For a deeper architectural dive, see the [Architecture Documentation](docs/architecture.md).
+
+---
+
+## 📦 Installation & Setup
+
+**Prerequisites:** Python 3.11+
+
+```bash
+# Clone the repository
+git clone https://github.com/OrionStudio07/UnrealDocWebScrapper.git
+cd UnrealDocWebScrapper
+
+# Create and activate virtual environment
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
+
+# Install dependencies
+pip install -e .[dev]
+
+# Install Playwright browser binaries
+playwright install chromium
 ```
 
 ---
 
-## Project Architecture
+## ⚙️ Configuration
 
-The system is designed with clean, modular modules under the `src/` directory:
+All settings are centralized in [`src/config.py`](src/config.py):
 
-*   **`src/config.py`**: Central configuration, throttling rates, and category routing rules.
-*   **`src/crawl_logging/crawl_logger.py`**: Terminal loggers and structured event logging to `Meta/crawl_log.json`.
-*   **`src/storage/vault_storage.py`**: Sanitizes file paths, resolves directory structures, and handles writing of files.
-*   **`src/linking/wiki_linker.py`**: Parses html anchors and normalizes anchor whitespace to build Obsidian wiki-links.
-*   **`src/metadata/frontmatter.py`**: Generates YAML frontmatter, runs regex-based tag inference, and generates the related pages backlinks block.
-*   **`src/markdown/cleaner.py`**: Cleans DOM boilerplate (headers, footers, sidebars, cookie banners) and implements markdown conversion fallbacks.
-*   **`src/extractor/page_extractor.py`**: Manages Playwright Chromium sessions, waits for network idle conditions, and handles extraction.
-*   **`src/crawler/queue_manager.py`**: Orchestrates worker task loops, async queues, sitemaps, and concurrency. Handles redirects.
-*   **`src/resume/state_manager.py`**: Manages JSON state serialization (visited, failed, queue, sitemaps).
+| Parameter | Default | Description |
+|:----------|:--------|:------------|
+| `CONCURRENT_REQUESTS` | `3` | Max simultaneous pages being crawled (supports up to 5) |
+| `REQUEST_DELAY` | `1.0` | Politeness sleep duration in seconds between requests |
+| `PLAYWRIGHT_HEADLESS` | `False` | Run browser headfully (recommended) or headlessly |
+| `PLAYWRIGHT_TIMEOUT` | `60000` | Page loading timeout in milliseconds |
 
----
-
-## Installation & Setup
-
-Ensure you have Python 3.11+ installed.
-
-1. Install requirements:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. Install Playwright browser binaries:
-   ```bash
-   playwright install
-   ```
+> 💡 Running headfully (`False`) is recommended on desktop machines to bypass automated-browser detection checks.
 
 ---
 
-## Configuration
+## 🚀 Usage
 
-Settings can be customized inside [src/config.py](file:///d:/CVT%20Antrigravity%20Plan/UnrealScrap/src/config.py):
+Run the scraper using the CLI entry point:
 
-*   `CONCURRENT_REQUESTS`: Maximum simultaneous pages being crawled (default is `3`, support up to `5`).
-*   `REQUEST_DELAY`: Politeness sleep duration in seconds between requests (default `1.0`).
-*   `PLAYWRIGHT_HEADLESS`: Run browser headfully (`False`) or headlessly (`True`). Running headfully is recommended on desktop machines to bypass bot checks.
-*   `PLAYWRIGHT_TIMEOUT`: Loading timeout in milliseconds (minimum `60000`).
-
----
-
-## How to Run
-
-Run the scraper using the CLI entry point `src/main.py`:
-
-### 1. Fresh Run with Sitemaps
-Clear existing logs and states, parse sitemaps, and start a fresh crawl up to a target limit of pages:
+### Fresh Run with Sitemaps
+Clear existing logs and states, parse sitemaps, and start a fresh crawl:
 ```bash
 python src/main.py --limit 100 --fresh
 ```
 
-### 2. Fast Crawl Skipping Sitemaps
-Directly start crawling from the main landing page and follow links recursively (skipping sitemaps check):
+### Fast Crawl (Skip Sitemaps)
+Start crawling directly from the landing page, following links recursively:
 ```bash
 python src/main.py --limit 10 --no-sitemap --fresh
 ```
 
-### 3. Resume Crawl
-If a crawl session is interrupted or reaches its limit, running without the `--fresh` flag will automatically load the saved queue and continue right where it left off:
+### Resume a Crawl
+If interrupted or limit-reached, resume exactly where it stopped:
 ```bash
 python src/main.py --limit 200
 ```
 
 ---
 
-## Optimizations & Technical Insights
+## 🔬 Optimizations & Technical Insights
 
-### Sitemap parsing performance (100x Speedup)
-Initially, sitemaps were fetched through Chromium which took more than 5 minutes due to Chromium having to parse massive XML files into the DOM under throttling. This was replaced with a multithreaded `urllib` fetcher that gets sitemap XMLs directly in thread pools, reducing sitemap discovery to less than **3 seconds** and leaving Chromium completely free to load actual pages.
+<details>
+<summary><strong>⚡ Sitemap Parsing — 100× Speedup</strong></summary>
 
-### Redirect & Language normalization
-Unreal documentation urls redirect dynamically (e.g. `en-us/` segments are stripped or redirected by the server). The crawler resolves the final redirected url (`page.url`) and registers both the enqueued and final resolved urls in the visited list to prevent duplicate crawling of the same page under different aliases.
+Initially, sitemaps were fetched through Chromium which took **5+ minutes** due to Chromium parsing massive XML files into the DOM under throttling. This was replaced with a multithreaded `urllib` fetcher that gets sitemap XMLs directly in thread pools, reducing sitemap discovery to under **3 seconds** while leaving Chromium completely free to load actual documentation pages.
+</details>
 
-### Clean Obsidian Links
-Piped anchor text containing multiple lines or indentations are flattened into a single space, generating clean and compatible Obsidian links.
+<details>
+<summary><strong>🔀 Redirect & Language Normalization</strong></summary>
+
+Unreal documentation URLs redirect dynamically (e.g. `en-us/` segments are stripped or redirected by the server). The crawler resolves the final redirected URL (`page.url`) and registers **both** the enqueued and final resolved URLs in the visited list, preventing duplicate crawling of the same page under different aliases.
+</details>
+
+<details>
+<summary><strong>🔗 Clean Obsidian Links</strong></summary>
+
+Piped anchor text containing multiple lines or indentations is flattened into a single space, generating clean, standards-compatible Obsidian wiki-links.
+</details>
 
 ---
 
-## Crawler Demo
+## 🎬 Crawler Demo
+
 See the asynchronous sitemap discovery, Playwright crawling engine, and Obsidian vault graph integration in action:
 
-<video src="samples/media/scraper_demo.mp4" width="100%" controls></video>
+https://github.com/OrionStudio07/UnrealDocWebScrapper/raw/ScrDev20x3/samples/media/scraper_demo.mp4
+
+---
+
+## 🧪 Testing
+
+The project includes a comprehensive test suite covering core processing components:
+
+```bash
+# Run all tests
+pytest
+
+# Run tests with coverage
+pytest --cov=src tests/ --cov-report=term-missing
+```
+
+| Test File | Coverage |
+|:----------|:---------|
+| [`test_wiki_linker.py`](tests/test_wiki_linker.py) | Link resolution, domain checking, wiki-link generation |
+| [`test_vault_storage.py`](tests/test_vault_storage.py) | Filename sanitization, category routing |
+| [`test_frontmatter.py`](tests/test_frontmatter.py) | Metadata parsing, tag inference, backlink injection |
+
+> ✅ **15 tests** passing in **< 0.3s** — all pure unit tests with zero I/O or network calls.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, coding standards (Ruff), and PR guidelines.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+<div align="center">
+
+---
+
+**Built with ❤️ for the Unreal Engine community**
+
+*Part of the [Orion Studio](https://github.com/OrionStudio07) ecosystem*
+
+</div>

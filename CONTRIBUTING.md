@@ -12,7 +12,7 @@ To get started with local development:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/UnrealDocWebScrapper.git
+   git clone https://github.com/OrionStudio07/UnrealDocWebScrapper.git
    cd UnrealDocWebScrapper
    ```
 
