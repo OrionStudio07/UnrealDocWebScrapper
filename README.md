@@ -125,4 +125,4 @@ Piped anchor text containing multiple lines or indentations are flattened into a
 ## Crawler Demo
 See the asynchronous sitemap discovery, Playwright crawling engine, and Obsidian vault graph integration in action:
 
-![Crawler Execution Demo](samples/media/scraper_demo.mp4)
+<video src="samples/media/scraper_demo.mp4" width="100%" controls></video>
